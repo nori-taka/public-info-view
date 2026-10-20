@@ -24,7 +24,7 @@
    | Name | 値 |
    |---|---|
    | `SUPABASE_URL` | Supabase の Project URL（`config.js` の supabaseUrl と同じ） |
-   | `SUPABASE_SERVICE_KEY` | Supabase の service_role キー（Project Settings → API。**書き込み専用の鍵。サイト側・チャット・ファイルには入れない**） |
+   | `SUPABASE_SERVICE_KEY` | Supabase の書き込み用の鍵（Project Settings → API Keys の **Secret key**。旧画面では service_role）。**サイト側・チャット・ファイルには入れない** |
    | `OWNER_USER_ID` | 本人の User UID（Authentication → Users の自分の行） |
 4. 巡回を1回実行（Actions → patrol → Run workflow）→ 数分後にサイトにデータが入る
 
