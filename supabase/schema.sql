@@ -58,3 +58,9 @@ as $$
   order by i.first_seen desc
   limit lim
 $$;
+
+-- 2026-10-30 以降、public に新しく作る表は、データAPIから使うために明示的な権限が要る（Supabaseからの通知）。
+-- 読めるのはログイン本人だけ（上の RLS）。書き込みは巡回側の service_role キーだけ。anon（未ログイン）には何も付けない。
+grant select on public.pi_items to authenticated;
+grant select, insert, update, delete on public.pi_items to service_role;
+grant execute on function public.pi_search(text, text[], text[], int) to authenticated;
