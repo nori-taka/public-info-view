@@ -4,6 +4,7 @@
 //   store.list({kind, org, days, notable, limit})   一覧（本文なし・新しい順）
 //   store.search(q, {kind, org})     全文検索（一致した前後つき）
 //   store.detail(id)                 1件の本文とメタ
+//   store.patrol("start"|"status")   巡回の起動・状態確認（cloud のみ。Edge Function run-patrol 経由）
 (function () {
   const cfg = window.PI_CONFIG || {};
   const demoMode = new URLSearchParams(location.search).has("demo") || !(cfg.supabaseUrl && cfg.supabaseAnonKey);
@@ -68,6 +69,15 @@
         q, kinds: o.kind ? [o.kind] : null, orgs: o.org ? [o.org] : null, lim: 80,
       });
       if (error) throw error;
+      return data;
+    },
+    async patrol(action) {
+      const { data, error } = await sb.functions.invoke("run-patrol", { body: { action } });
+      if (error) {
+        let msg = error.message;
+        try { const j = await error.context.json(); if (j.error) msg = j.error; } catch {}
+        throw new Error(msg);
+      }
       return data;
     },
     async detail(id) {

@@ -70,6 +70,7 @@
       <h1>群馬 公共情報</h1>
       <input id="q" type="search" placeholder="資料の中身を検索（例: 最低制限価格 / 総合計画 / 橋梁）">
       <button id="reload" title="再読み込み">更新</button>
+      <button id="patrol" class="hidden" title="いますぐ巡回して新着を取り込む（約4〜5分）">今すぐ巡回</button>
       <button id="logout" class="hidden">ログアウト</button>
     </div>
     <div class="filters">
@@ -164,6 +165,29 @@ async function openDetail(id) {
 }
 const closeDetail = () => $("#drawer").classList.add("hidden");
 
+// 「今すぐ巡回」: GitHub の巡回を起動し、終わるまで待って画面を読み直す（約4〜5分）
+async function runPatrol() {
+  const b = $("#patrol"), label = "今すぐ巡回", sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  b.disabled = true;
+  try {
+    const since = Date.now() - 15000;
+    const r = await store.patrol("start");
+    if (!r.started) { alert(r.running ? "すでに巡回中です。終わるまで待ちます。" : "起動できませんでした"); }
+    for (let i = 0; i < 60; i++) {   // 15秒おき×最大15分
+      b.textContent = "巡回中…";
+      await sleep(15000);
+      const s = await store.patrol("status");
+      const run = s.run;
+      if (run && (!r.started || new Date(run.created_at).getTime() >= since - 60000) && run.status === "completed") {
+        await render();
+        alert(run.conclusion === "success" ? "巡回が終わりました。新着を読み込みました。" : "巡回は失敗しました（GitHub の Actions 画面で確認）。");
+        break;
+      }
+    }
+  } catch (e) { alert("巡回できませんでした: " + (e.message || e)); }
+  b.textContent = label; b.disabled = false;
+}
+
 function setup() {
   $("#tabs").innerHTML = KINDS.map(([k, n]) => `<button data-k="${k}" class="${k === state.kind ? "on" : ""}">${n}</button>`).join("");
   $("#org").innerHTML = '<option value="">全団体</option>' + ORGS.map(([id, n]) => `<option value="${id}">${n}</option>`).join("");
@@ -172,6 +196,7 @@ function setup() {
   ["#org", "#days", "#notable"].forEach((s) => ($(s).onchange = render));
   let t; $("#q").oninput = (e) => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value.trim(); render(); }, 350); };
   $("#reload").onclick = render;
+  $("#patrol").onclick = runPatrol;
   $("#list").onclick = (e) => { const c = e.target.closest(".card"); if (c) openDetail(c.dataset.id); };
   $("#drawer").onclick = (e) => { if (e.target.id === "drawer") closeDetail(); };
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDetail(); });
@@ -192,7 +217,7 @@ function setup() {
   }
   $("#app").classList.remove("hidden");
   if (store.mode === "demo") $("#demoBanner").classList.remove("hidden");
-  else { $("#logout").classList.remove("hidden"); $("#logout").onclick = () => store.logout(); }
+  else { $("#logout").classList.remove("hidden"); $("#patrol").classList.remove("hidden"); $("#logout").onclick = () => store.logout(); }
   setup(); render();
 })();
 </script>
