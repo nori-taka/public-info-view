@@ -29,7 +29,7 @@
 4. 巡回を1回実行（Actions → patrol → Run workflow）→ 数分後にサイトにデータが入る
 
 ## 「今すぐ巡回」ボタン（2026-10-24 追加）
-ボタン → Supabase の Edge Function `run-patrol`（`supabase/functions/run-patrol/index.ts`）→ GitHub Actions の patrol を起動。約4〜5分で終わり、画面が自動で読み直される。
+ボタン → Supabase の Edge Function（コードは `supabase/functions/run-patrol/index.ts`。Supabase 上の名前は自動で付いた `dynamic-api`）→ GitHub Actions の patrol を起動。約4〜5分で終わり、画面が自動で読み直される。
 - 本人（`OWNER_USER_ID`）以外は断る。すでに巡回中なら二重に起動しない
 - GitHub の鍵は Supabase の Secrets（`PATROL_GH_TOKEN`、`public-info` の Actions だけ操作できる権限）にだけ置く。サイトとこのリポジトリには入れない
 - Secrets は `PATROL_GH_TOKEN` と `OWNER_USER_ID`（`SUPABASE_URL` などは Supabase が自動で渡す）
